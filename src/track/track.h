@@ -383,6 +383,8 @@ class Track : public QObject {
     // Set the track's Beats if not locked
     bool trySetBeats(mixxx::BeatsPointer pBeats);
 
+    bool tryShiftDownbeatPhase(int offset);
+
     void undoBeatsChange();
     bool canUndoBeatsChange() const {
         return !m_pBeatsUndoStack.isEmpty();

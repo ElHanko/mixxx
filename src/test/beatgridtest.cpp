@@ -265,4 +265,23 @@ TEST(BeatGridTest, BpmLockRejectsBeatsForTrackWithoutBeats) {
     EXPECT_TRUE(pTrack->isBpmLocked());
 }
 
+TEST(BeatGridTest, ShiftDownbeatPhase) {
+    TrackPointer pTrack = newTrack(kSampleRate);
+    EXPECT_FALSE(pTrack->tryShiftDownbeatPhase(1));
+
+    ASSERT_TRUE(pTrack->trySetBpm(120.0));
+    const auto originalBeats = pTrack->getBeats();
+    ASSERT_TRUE(originalBeats);
+    const auto originalFirstBeat = *originalBeats->iteratorFrom(audio::kStartFramePos);
+
+    pTrack->setBpmLocked(true);
+    EXPECT_TRUE(pTrack->tryShiftDownbeatPhase(1));
+    EXPECT_TRUE(pTrack->isBpmLocked());
+
+    const auto shiftedBeats = pTrack->getBeats();
+    ASSERT_TRUE(shiftedBeats);
+    EXPECT_EQ(1, shiftedBeats->getDownbeatPhase());
+    EXPECT_EQ(originalFirstBeat, *shiftedBeats->iteratorFrom(audio::kStartFramePos));
+}
+
 }  // namespace

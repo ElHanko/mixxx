@@ -413,6 +413,55 @@ TEST(BeatsTest, NonConstTempoSerialization) {
     EXPECT_EQ(byteArray, pBeats->toByteArray());
 }
 
+TEST(BeatsTest, DownbeatPhaseDefaultsToFirstBeat) {
+    EXPECT_EQ(0, kConstTempoBeats.getDownbeatPhase());
+    const auto firstBeat = kConstTempoBeats.iteratorFrom(kStartPosition);
+    auto secondBeat = firstBeat;
+    secondBeat += 1;
+    EXPECT_TRUE(kConstTempoBeats.isDownbeat(firstBeat));
+    EXPECT_FALSE(kConstTempoBeats.isDownbeat(secondBeat));
+}
+
+TEST(BeatsTest, DownbeatPhaseShiftsAndWraps) {
+    const auto shiftedForward = kConstTempoBeats.withShiftedDownbeatPhase(1);
+    const auto firstShiftedBeat = shiftedForward->iteratorFrom(kStartPosition);
+    auto secondShiftedBeat = firstShiftedBeat;
+    secondShiftedBeat += 1;
+    EXPECT_EQ(1, shiftedForward->getDownbeatPhase());
+    EXPECT_FALSE(shiftedForward->isDownbeat(firstShiftedBeat));
+    EXPECT_TRUE(shiftedForward->isDownbeat(secondShiftedBeat));
+
+    const auto shiftedBackward = shiftedForward->withShiftedDownbeatPhase(-1);
+    const auto firstShiftedBackBeat = shiftedBackward->iteratorFrom(kStartPosition);
+    EXPECT_EQ(0, shiftedBackward->getDownbeatPhase());
+    EXPECT_TRUE(shiftedBackward->isDownbeat(firstShiftedBackBeat));
+
+    const auto wrappedForward = kConstTempoBeats.withShiftedDownbeatPhase(4);
+    EXPECT_EQ(0, wrappedForward->getDownbeatPhase());
+    const auto wrappedBackward = kConstTempoBeats.withShiftedDownbeatPhase(-1);
+    EXPECT_EQ(3, wrappedBackward->getDownbeatPhase());
+}
+
+TEST(BeatsTest, DownbeatPhaseRoundTripsForBeatGridAndBeatMap) {
+    const auto beatGrid = kConstTempoBeats.withShiftedDownbeatPhase(2);
+    const auto beatMap = kNonConstTempoBeats.withShiftedDownbeatPhase(3);
+
+    const auto roundTrip = [](const BeatsPointer& beats) {
+        return Beats::fromByteArray(
+                kSampleRate,
+                beats->getVersion(),
+                beats->getSubVersion(),
+                beats->toByteArray());
+    };
+
+    const auto pBeatGrid = roundTrip(beatGrid);
+    ASSERT_NE(nullptr, pBeatGrid);
+    EXPECT_EQ(2, pBeatGrid->getDownbeatPhase());
+    const auto pBeatMap = roundTrip(beatMap);
+    ASSERT_NE(nullptr, pBeatMap);
+    EXPECT_EQ(3, pBeatMap->getDownbeatPhase());
+}
+
 TEST(BeatsTest, NonConstTempoFromBeatPositions) {
     QVector<audio::FramePos> beatPositions;
     const audio::FrameDiff_t beatLengthFrames = 60.0 * kSampleRate.value() / kBpm.value();

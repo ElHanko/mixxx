@@ -437,6 +437,22 @@ bool Track::trySetBeats(mixxx::BeatsPointer pBeats) {
     return trySetBeatsMarkDirtyAndUnlock(&locked, pBeats, false);
 }
 
+bool Track::tryShiftDownbeatPhase(int offset) {
+    if (offset == 0) {
+        return false;
+    }
+
+    auto locked = lockMutex(&m_qMutex);
+    if (!m_pBeats) {
+        return false;
+    }
+    if (!setBeatsWhileLocked(m_pBeats->withShiftedDownbeatPhase(offset))) {
+        return false;
+    }
+    afterBeatsAndBpmUpdated(&locked);
+    return true;
+}
+
 bool Track::setBeatsWhileLocked(mixxx::BeatsPointer pBeats) {
     if (m_pBeats == pBeats) {
         return false;

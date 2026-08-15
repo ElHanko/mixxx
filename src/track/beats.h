@@ -144,6 +144,8 @@ class Beats : private std::enable_shared_from_this<Beats> {
         }
 
       private:
+        friend class Beats;
+
         void updateValue();
 
         mixxx::audio::FramePos m_value;
@@ -157,12 +159,14 @@ class Beats : private std::enable_shared_from_this<Beats> {
             mixxx::audio::FramePos lastMarkerPosition,
             mixxx::Bpm lastMarkerBpm,
             mixxx::audio::SampleRate sampleRate,
-            const QString& subVersion)
+            const QString& subVersion,
+            int downbeatPhase = 0)
             : m_markers(std::move(markers)),
               m_lastMarkerPosition(lastMarkerPosition),
               m_lastMarkerBpm(lastMarkerBpm),
               m_sampleRate(sampleRate),
-              m_subVersion(subVersion) {
+              m_subVersion(subVersion),
+              m_downbeatPhase(normalizeDownbeatPhase(downbeatPhase)) {
         DEBUG_ASSERT(m_lastMarkerPosition.isValid());
         DEBUG_ASSERT(!m_lastMarkerPosition.isFractional());
         DEBUG_ASSERT(m_lastMarkerBpm.isValid());
@@ -172,12 +176,14 @@ class Beats : private std::enable_shared_from_this<Beats> {
     Beats(mixxx::audio::FramePos lastMarkerPosition,
             mixxx::Bpm lastMarkerBpm,
             mixxx::audio::SampleRate sampleRate,
-            const QString& subVersion)
+            const QString& subVersion,
+            int downbeatPhase = 0)
             : Beats(std::vector<BeatMarker>(),
                       lastMarkerPosition,
                       lastMarkerBpm,
                       sampleRate,
-                      subVersion) {
+                      subVersion,
+                      downbeatPhase) {
     }
 
     ~Beats() = default;
@@ -217,7 +223,7 @@ class Beats : private std::enable_shared_from_this<Beats> {
         return lhs.m_markers == rhs.m_markers &&
                 lhs.m_lastMarkerPosition == rhs.m_lastMarkerPosition &&
                 lhs.m_lastMarkerBpm == rhs.m_lastMarkerBpm && lhs.m_sampleRate &&
-                rhs.m_sampleRate;
+                rhs.m_sampleRate && lhs.m_downbeatPhase == rhs.m_downbeatPhase;
     }
 
     friend bool operator!=(const Beats& lhs, const Beats& rhs) {
@@ -249,19 +255,22 @@ class Beats : private std::enable_shared_from_this<Beats> {
             audio::SampleRate sampleRate,
             audio::FramePos position,
             Bpm bpm,
-            const QString& subVersion = QString());
+            const QString& subVersion = QString(),
+            int downbeatPhase = 0);
 
     static mixxx::BeatsPointer fromBeatPositions(
             audio::SampleRate sampleRate,
             const QVector<audio::FramePos>& beatPositions,
-            const QString& subVersion = QString());
+            const QString& subVersion = QString(),
+            int downbeatPhase = 0);
 
     static mixxx::BeatsPointer fromBeatMarkers(
             audio::SampleRate sampleRate,
             const std::vector<BeatMarker>& beatMarker,
             const audio::FramePos lastMarkerPosition,
             const Bpm lastMarkerBpm,
-            const QString& subVersion = QString());
+            const QString& subVersion = QString(),
+            int downbeatPhase = 0);
 
     enum class BpmScale {
         Halve,
@@ -295,6 +304,12 @@ class Beats : private std::enable_shared_from_this<Beats> {
     QString getSubVersion() const {
         return m_subVersion;
     }
+
+    int getDownbeatPhase() const {
+        return m_downbeatPhase;
+    }
+
+    bool isDownbeat(const ConstIterator& beat) const;
 
     ////////////////////////////////////////////////////////////////////////////
     // Beat calculations
@@ -418,6 +433,8 @@ class Beats : private std::enable_shared_from_this<Beats> {
     /// failure.
     std::optional<BeatsPointer> trySetBpm(mixxx::Bpm bpm) const;
 
+    BeatsPointer withShiftedDownbeatPhase(int offset) const;
+
   protected:
     /// Type tag for making public constructors of derived classes inaccessible.
     ///
@@ -438,6 +455,8 @@ class Beats : private std::enable_shared_from_this<Beats> {
     mixxx::audio::FrameDiff_t firstBeatLengthFrames() const;
     mixxx::audio::FrameDiff_t lastBeatLengthFrames() const;
 
+    static int normalizeDownbeatPhase(int phase);
+
     std::vector<BeatMarker> m_markers;
     mixxx::audio::FramePos m_lastMarkerPosition;
     mixxx::Bpm m_lastMarkerBpm;
@@ -445,6 +464,7 @@ class Beats : private std::enable_shared_from_this<Beats> {
 
     // The sub-version of this beatgrid.
     const QString m_subVersion;
+    const int m_downbeatPhase;
 };
 
 } // namespace mixxx
