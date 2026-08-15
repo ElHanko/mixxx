@@ -125,6 +125,26 @@ BpmControl::BpmControl(const QString& group,
             &BpmControl::slotTranslateBeatsMove,
             Qt::DirectConnection);
 
+    m_pForwardDownbeatsMarker = std::make_unique<ControlPushButton>(
+            ConfigKey(group, "beats_forward_down_beats_marker"), false);
+    m_pForwardDownbeatsMarker->setKbdRepeatable(true);
+    connect(m_pForwardDownbeatsMarker.get(),
+            &ControlObject::valueChanged,
+            this,
+            &BpmControl::slotForwardDownbeatsMarker,
+            Qt::DirectConnection);
+    m_pBackwardDownbeatsMarker = std::make_unique<ControlPushButton>(
+            ConfigKey(group, "beats_backward_down_beats_marker"), false);
+    m_pBackwardDownbeatsMarker->setKbdRepeatable(true);
+    connect(m_pBackwardDownbeatsMarker.get(),
+            &ControlObject::valueChanged,
+            this,
+            &BpmControl::slotBackwardDownbeatsMarker,
+            Qt::DirectConnection);
+    m_pToggleDownbeatsMarker = std::make_unique<ControlPushButton>(
+            ConfigKey(group, "toggle_downbeats_marker"), true, 1.0);
+    m_pToggleDownbeatsMarker->setButtonMode(mixxx::control::ButtonMode::Toggle);
+
     m_pBeatsHalve = std::make_unique<ControlPushButton>(ConfigKey(group, "beats_set_halve"), false);
     connect(m_pBeatsHalve.get(),
             &ControlObject::valueChanged,
@@ -340,6 +360,26 @@ void BpmControl::slotTranslateBeatsLater(double v) {
         return;
     }
     slotTranslateBeatsMove(1);
+}
+
+void BpmControl::slotForwardDownbeatsMarker(double v) {
+    if (v <= 0) {
+        return;
+    }
+    const TrackPointer pTrack = getEngineBuffer()->getLoadedTrack();
+    if (pTrack) {
+        pTrack->tryShiftDownbeatPhase(1);
+    }
+}
+
+void BpmControl::slotBackwardDownbeatsMarker(double v) {
+    if (v <= 0) {
+        return;
+    }
+    const TrackPointer pTrack = getEngineBuffer()->getLoadedTrack();
+    if (pTrack) {
+        pTrack->tryShiftDownbeatPhase(-1);
+    }
 }
 
 // slotTranslateBeatsHalf works only with constant BPM tracks
