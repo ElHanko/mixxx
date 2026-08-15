@@ -188,6 +188,7 @@
             <SignalRGBMidColor></SignalRGBMidColor>
             <SignalRGBLowColor></SignalRGBLowColor>
             <BeatColor><Variable name="BeatColor"/></BeatColor>
+            <DownbeatColor><Variable name="DownbeatColor"/></DownbeatColor>
             <AxesColor><Variable name="AxesColor"/></AxesColor>
             <BeatHighlightColor></BeatHighlightColor>
             <PlayPosColor><Variable name="PlayPosColor"/></PlayPosColor>
@@ -437,6 +438,36 @@
               </WidgetGroup><!-- Hotcue shift -->
             </Children>
           </WidgetGroup><!-- /beat grid & hotcue shift buttons row -->
+
+          <WidgetGroup>
+            <Layout>horizontal</Layout>
+            <SizePolicy>f,f</SizePolicy>
+            <Children>
+              <WidgetGroup><Size>1f,0min</Size></WidgetGroup>
+              <Template src="skins:LateNight/controls/button_1state.xml">
+                <SetVariable name="ObjectName">DownbeatsBackward</SetVariable>
+                <SetVariable name="Size">26f,26f</SetVariable>
+                <SetVariable name="state_0_text">&lt;</SetVariable>
+                <SetVariable name="Align">center</SetVariable>
+                <SetVariable name="ConfigKey"><Variable name="Group"/>,beats_backward_down_beats_marker</SetVariable>
+              </Template>
+              <Template src="skins:LateNight/controls/button_1state.xml">
+                <SetVariable name="ObjectName">DownbeatsToggle</SetVariable>
+                <SetVariable name="Size">26f,26f</SetVariable>
+                <SetVariable name="state_0_text">1</SetVariable>
+                <SetVariable name="Align">center</SetVariable>
+                <SetVariable name="ConfigKey"><Variable name="Group"/>,toggle_downbeats_marker</SetVariable>
+              </Template>
+              <Template src="skins:LateNight/controls/button_1state.xml">
+                <SetVariable name="ObjectName">DownbeatsForward</SetVariable>
+                <SetVariable name="Size">26f,26f</SetVariable>
+                <SetVariable name="state_0_text">&gt;</SetVariable>
+                <SetVariable name="Align">center</SetVariable>
+                <SetVariable name="ConfigKey"><Variable name="Group"/>,beats_forward_down_beats_marker</SetVariable>
+              </Template>
+              <WidgetGroup><Size>1f,0min</Size></WidgetGroup>
+            </Children>
+          </WidgetGroup>
 
           <WidgetGroup><Size>1me,1me</Size></WidgetGroup>
         </Children>

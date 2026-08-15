@@ -4,10 +4,12 @@
 #include <QApplication>
 #include <QWheelEvent>
 
+#include "control/controlproxy.h"
 #include "rendergraph/engine.h"
 #include "rendergraph/opacitynode.h"
 #include "waveform/renderers/allshader/waveformrenderbackground.h"
 #include "waveform/renderers/allshader/waveformrenderbeat.h"
+#include "waveform/renderers/allshader/waveformrenderdownbeat.h"
 #include "waveform/renderers/allshader/waveformrendererendoftrack.h"
 #include "waveform/renderers/allshader/waveformrendererfiltered.h"
 #include "waveform/renderers/allshader/waveformrendererhsv.h"
@@ -31,8 +33,12 @@ WaveformWidget::WaveformWidget(QWidget* parent,
         : WGLWidget(parent),
           WaveformWidgetAbstract(group),
           m_type(type),
+          m_pDownbeatOpacityNode(nullptr),
           m_pWaveformRenderMarkSlip(nullptr),
           m_pWaveformRendererSignal(nullptr) {
+    m_pToggleDownbeatsMarker = std::make_unique<ControlProxy>(
+            getGroup(), QStringLiteral("toggle_downbeats_marker"), this);
+
     auto pTopNode = std::make_unique<rendergraph::Node>();
     auto pOpacityNode = std::make_unique<rendergraph::OpacityNode>();
 
@@ -60,6 +66,9 @@ WaveformWidget::WaveformWidget(QWidget* parent,
         pOpacityNode->appendChildNode(std::unique_ptr<rendergraph::BaseNode>(pNode));
     }
     pOpacityNode->appendChildNode(addRendererNode<WaveformRenderBeat>());
+    auto pDownbeatOpacityNode = std::make_unique<rendergraph::OpacityNode>();
+    pDownbeatOpacityNode->appendChildNode(addRendererNode<WaveformRenderDownbeat>());
+    m_pDownbeatOpacityNode = pOpacityNode->appendChildNode(std::move(pDownbeatOpacityNode));
     m_pWaveformRenderMark = pOpacityNode->appendChildNode(addRendererNode<WaveformRenderMark>());
 
     // if the added signal renderer supports slip, we add it again, now for
@@ -82,6 +91,9 @@ WaveformWidget::WaveformWidget(QWidget* parent,
         pOpacityNode->appendChildNode(std::unique_ptr<rendergraph::BaseNode>(pNode));
         pOpacityNode->appendChildNode(
                 addRendererNode<WaveformRenderBeat>(
+                        ::WaveformRendererAbstract::Slip));
+        m_pDownbeatOpacityNode->appendChildNode(
+                addRendererNode<WaveformRenderDownbeat>(
                         ::WaveformRendererAbstract::Slip));
         m_pWaveformRenderMarkSlip = pOpacityNode->appendChildNode(
                 addRendererNode<WaveformRenderMark>(
@@ -153,6 +165,8 @@ mixxx::Duration WaveformWidget::render() {
 void WaveformWidget::paintGL() {
     // opacity of 0.f effectively skips the subtree rendering
     m_pOpacityNode->setOpacity(shouldOnlyDrawBackground() ? 0.f : 1.f);
+    m_pDownbeatOpacityNode->setOpacity(
+            m_pToggleDownbeatsMarker->toBool() && !shouldOnlyDrawBackground() ? 1.f : 0.f);
 
     m_pWaveformRenderMark->update();
     m_pWaveformRenderMarkRange->update();

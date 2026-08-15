@@ -10,6 +10,8 @@ class Engine;
 class OpacityNode;
 } // namespace rendergraph
 
+class ControlProxy;
+
 namespace allshader {
 class WaveformWidget;
 class WaveformRenderMark;
@@ -93,11 +95,13 @@ class allshader::WaveformWidget final : public ::WGLWidget,
     WaveformWidgetType::Type m_type;
     std::unique_ptr<rendergraph::Engine> m_pEngine;
     rendergraph::OpacityNode* m_pOpacityNode;
+    rendergraph::OpacityNode* m_pDownbeatOpacityNode;
     WaveformRenderMark* m_pWaveformRenderMark;
     WaveformRenderMarkRange* m_pWaveformRenderMarkRange;
     WaveformRenderMark* m_pWaveformRenderMarkSlip;
 
     WaveformRendererSignalBase* m_pWaveformRendererSignal;
+    std::unique_ptr<ControlProxy> m_pToggleDownbeatsMarker;
 
     DISALLOW_COPY_AND_ASSIGN(WaveformWidget);
 };
