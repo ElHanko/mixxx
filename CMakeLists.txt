@@ -1427,6 +1427,7 @@ add_library(
   src/library/export/coverartcopyworker.cpp
   src/library/export/dlgtrackexport.ui
   src/library/export/rekordboxcollectionxml.cpp
+  src/library/export/rekordboxcollectionxmlfile.cpp
   src/library/export/trackexportdlg.cpp
   src/library/export/trackexportwizard.cpp
   src/library/export/trackexportworker.cpp
@@ -2958,6 +2959,7 @@ if(BUILD_TESTING)
     src/test/rangelist_test.cpp
     src/test/readaheadmanager_test.cpp
     src/test/rekordboxcollectionxml_test.cpp
+    src/test/rekordboxcollectionxmlfile_test.cpp
     src/test/replaygaintest.cpp
     src/test/rescalertest.cpp
     src/test/rgbcolor_test.cpp
